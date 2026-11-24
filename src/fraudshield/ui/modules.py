@@ -67,6 +67,7 @@ MODULES: tuple[Module, ...] = (
             "Fraud rate by hour, day and spending category",
             "Correlations and outliers",
         ),
+        ready=True,
     ),
     Module(
         key="models",

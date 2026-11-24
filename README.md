@@ -19,8 +19,8 @@ explains each score so an analyst knows what to investigate first.
 | 0 | Requirements & feasibility ([docs/requirements.md](docs/requirements.md)) | ✅ Done |
 | 1 | Project setup, architecture, theme, navigation | ✅ Done |
 | 2 | Dataset upload, validation, data quality | ✅ Done |
-| 3 | Exploratory data analysis | ⏳ Next |
-| 4 | Machine-learning engine | Planned |
+| 3 | Exploratory data analysis | ✅ Done |
+| 4 | Machine-learning engine | ⏳ Next |
 | 5 | Fraud prediction, risk intelligence, investigation | Planned |
 | 6 | Executive dashboard, reports, integration | Planned |
 | 7 | Testing & performance optimisation | Planned |
@@ -50,6 +50,7 @@ Browser ──► Streamlit (app.py + views/)      UI only: displays results
            ├─ config.py   paths, seeds, risk thresholds
            ├─ data/       loading, validation, quality checks
            ├─ features/   feature engineering
+           ├─ eda/        EDA summaries and Plotly charts
            ├─ models/     training, evaluation, saved models
            ├─ risk/       risk tiers
            ├─ reports/    CSV / PDF
