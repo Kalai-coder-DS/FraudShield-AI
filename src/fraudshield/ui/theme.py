@@ -6,32 +6,33 @@ All colours are defined once here and reused by the CSS, the Plotly charts
 
 from __future__ import annotations
 
-# Base surfaces (dark plum-charcoal)
-BACKGROUND = "#18111E"
-SIDEBAR = "#22162B"
-CARD = "#2A1C35"
-CARD_BORDER = "#3B2849"
+# Base surfaces (dark charcoal with a red tint)
+BACKGROUND = "#140D0E"
+SIDEBAR = "#1E1315"
+CARD = "#291A1D"
+CARD_BORDER = "#3F272B"
 
-# Accents
-PRIMARY = "#C447D6"  # violet/magenta
-PRIMARY_SOFT = "#8E3FA8"
-SECONDARY = "#FF8A65"  # warm coral
-AMBER = "#F5B041"
+# Accents: red signals "alert / fraud"; amber is the supporting accent
+PRIMARY = "#E63946"  # alert red
+PRIMARY_SOFT = "#9E2A35"  # dark red for hover states and fills
+SECONDARY = "#F4A261"  # warm amber
+AMBER = "#F5C04A"
 
 # Text
-TEXT = "#F3EEF6"  # soft white
-TEXT_MUTED = "#A99BB3"  # muted grey
+TEXT = "#F5EDEE"  # soft white
+TEXT_MUTED = "#B8A4A7"  # muted grey
 
-# Semantic colours for the four risk tiers (low -> critical)
+# Semantic colours for the four risk tiers (low -> critical). They go from green
+# to bright red, so the brightest red in the product always means Critical risk.
 RISK_COLORS: dict[str, str] = {
     "Low": "#4CC9A0",
     "Medium": AMBER,
-    "High": SECONDARY,
-    "Critical": "#E5486E",
+    "High": "#FF8C42",
+    "Critical": "#FF4D6D",
 }
 
 # Ordered palette for categorical charts
-CHART_SEQUENCE: list[str] = [PRIMARY, SECONDARY, AMBER, "#7C6CF2", "#4CC9A0", "#E5486E"]
+CHART_SEQUENCE: list[str] = [PRIMARY, SECONDARY, "#4CC9A0", "#8D99AE", AMBER, "#FF8C42"]
 
 GLOBAL_CSS = f"""
 <style>
@@ -102,6 +103,6 @@ section[data-testid="stSidebar"] {{
     font-size: .72rem; font-weight: 600;
 }}
 .fs-badge-ready   {{ background: rgba(76, 201, 160, .15); color: #4CC9A0; }}
-.fs-badge-planned {{ background: rgba(245, 176, 65, .15); color: {AMBER}; }}
+.fs-badge-planned {{ background: rgba(245, 192, 74, .15); color: {AMBER}; }}
 </style>
 """

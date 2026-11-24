@@ -8,6 +8,7 @@ import streamlit as st
 
 from fraudshield.ui.components import build_badge_html, render_header
 from fraudshield.ui.modules import MODULES
+from fraudshield.ui.theme import TEXT_MUTED
 
 render_header(
     "FraudShield AI",
@@ -41,7 +42,7 @@ for module in MODULES:
     status = build_badge_html("Ready" if module.ready else f"Phase {module.phase}", module.ready)
     rows.append(
         f"<tr><td style='padding:.5rem .75rem'><b>{escape(module.title)}</b></td>"
-        f"<td style='padding:.5rem .75rem;color:#A99BB3'>{escape(module.summary)}</td>"
+        f"<td style='padding:.5rem .75rem;color:{TEXT_MUTED}'>{escape(module.summary)}</td>"
         f"<td style='padding:.5rem .75rem'>{status}</td></tr>"
     )
 st.markdown(

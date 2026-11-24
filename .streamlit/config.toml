@@ -1,9 +1,10 @@
+# Must match the colours in src/fraudshield/ui/theme.py (checked by tests/test_ui.py)
 [theme]
 base = "dark"
-primaryColor = "#C447D6"            # violet/magenta accent
-backgroundColor = "#18111E"         # plum-charcoal main background
-secondaryBackgroundColor = "#22162B" # sidebar and input backgrounds
-textColor = "#F3EEF6"               # soft white
+primaryColor = "#E63946"            # alert red accent
+backgroundColor = "#140D0E"         # red-tinted charcoal background
+secondaryBackgroundColor = "#1E1315" # sidebar and input backgrounds
+textColor = "#F5EDEE"               # soft white
 font = "sans serif"
 
 [server]

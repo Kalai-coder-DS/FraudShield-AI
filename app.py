@@ -13,7 +13,7 @@ import streamlit as st
 
 from fraudshield import __version__
 from fraudshield.ui.modules import MODULES
-from fraudshield.ui.theme import GLOBAL_CSS
+from fraudshield.ui.theme import GLOBAL_CSS, TEXT_MUTED
 
 st.set_page_config(
     page_title="FraudShield AI",
@@ -34,7 +34,7 @@ navigation = st.navigation(sections)
 
 with st.sidebar:
     st.markdown(
-        f"<div style='color:#A99BB3;font-size:.75rem;margin-top:1rem'>"
+        f"<div style='color:{TEXT_MUTED};font-size:.75rem;margin-top:1rem'>"
         f"FraudShield AI · v{__version__}</div>",
         unsafe_allow_html=True,
     )

@@ -56,3 +56,41 @@ def test_each_view_renders_without_errors(view):
     at = testing.AppTest.from_file(str(PROJECT_ROOT / "views" / f"{view}.py"))
     at.run(timeout=30)
     assert not at.exception, at.exception
+
+
+# --- Theme consistency and readability ----------------------------------------
+
+
+def test_streamlit_config_matches_theme():
+    tomllib = pytest.importorskip("tomllib")  # Python 3.11+
+    with open(PROJECT_ROOT / ".streamlit" / "config.toml", "rb") as f:
+        cfg = tomllib.load(f)["theme"]
+    assert cfg["primaryColor"].upper() == theme.PRIMARY.upper()
+    assert cfg["backgroundColor"].upper() == theme.BACKGROUND.upper()
+    assert cfg["secondaryBackgroundColor"].upper() == theme.SIDEBAR.upper()
+    assert cfg["textColor"].upper() == theme.TEXT.upper()
+
+
+def _contrast(a: str, b: str) -> float:
+    """WCAG 2 contrast ratio between two hex colours."""
+
+    def luminance(hex_colour: str) -> float:
+        rgb = [int(hex_colour.lstrip("#")[i : i + 2], 16) / 255 for i in (0, 2, 4)]
+        lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+        return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
+
+    high, low = sorted((luminance(a), luminance(b)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+def test_text_is_readable_on_cards():
+    # WCAG AA: 4.5:1 for normal text
+    assert _contrast(theme.TEXT, theme.CARD) >= 4.5
+    assert _contrast(theme.TEXT_MUTED, theme.CARD) >= 4.5
+    assert _contrast(theme.TEXT_MUTED, theme.SIDEBAR) >= 4.5
+
+
+def test_risk_colours_are_visible_on_cards():
+    # WCAG AA: 3:1 for large text and graphics such as chart bars and badges
+    for tier, colour in theme.RISK_COLORS.items():
+        assert _contrast(colour, theme.CARD) >= 3, tier
