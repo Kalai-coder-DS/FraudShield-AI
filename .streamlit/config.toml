@@ -1,0 +1,13 @@
+[theme]
+base = "dark"
+primaryColor = "#C447D6"            # violet/magenta accent
+backgroundColor = "#18111E"         # plum-charcoal main background
+secondaryBackgroundColor = "#22162B" # sidebar and input backgrounds
+textColor = "#F3EEF6"               # soft white
+font = "sans serif"
+
+[server]
+maxUploadSize = 200   # MB; uploads above this are rejected by Streamlit
+
+[browser]
+gatherUsageStats = false
