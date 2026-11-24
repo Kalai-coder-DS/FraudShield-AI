@@ -94,3 +94,13 @@ def test_risk_colours_are_visible_on_cards():
     # WCAG AA: 3:1 for large text and graphics such as chart bars and badges
     for tier, colour in theme.RISK_COLORS.items():
         assert _contrast(colour, theme.CARD) >= 3, tier
+
+
+def test_mask_card_shows_only_last_four_digits():
+    assert components.mask_card("2703186189652095") == "•••• 2095"
+    assert components.mask_card(None) == ""
+    assert components.mask_card("12") == "••••"
+
+
+def test_escape_markdown_neutralises_formatting():
+    assert components.escape_markdown("**bold** [x](y)") == r"\*\*bold\*\* \[x\]\(y\)"

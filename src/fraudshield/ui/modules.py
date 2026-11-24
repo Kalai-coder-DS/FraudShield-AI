@@ -52,6 +52,7 @@ MODULES: tuple[Module, ...] = (
             "Detect missing values, duplicates and invalid values",
             "Validate required columns and map differently named columns",
         ),
+        ready=True,
     ),
     Module(
         key="eda",

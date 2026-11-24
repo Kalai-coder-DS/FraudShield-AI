@@ -58,3 +58,21 @@ def render_empty_state(title: str, message: str) -> None:
     import streamlit as st
 
     st.markdown(build_empty_state_html(title, message), unsafe_allow_html=True)
+
+
+# --- Text helpers -------------------------------------------------------------
+
+_MARKDOWN_SPECIAL = set("\\`*_{}[]()#+-.!|<>~$:")
+
+
+def escape_markdown(text: str) -> str:
+    """Escape user text so Streamlit markdown shows it literally."""
+    return "".join(f"\\{c}" if c in _MARKDOWN_SPECIAL else c for c in str(text))
+
+
+def mask_card(value: object) -> str:
+    """Show only the last 4 digits of a card number: '•••• 2095'."""
+    text = "" if value is None else str(value)
+    if text in ("", "nan", "<NA>", "None"):
+        return ""
+    return f"•••• {text[-4:]}" if len(text) > 4 else "••••"

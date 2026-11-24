@@ -18,8 +18,8 @@ explains each score so an analyst knows what to investigate first.
 |---|---|---|
 | 0 | Requirements & feasibility ([docs/requirements.md](docs/requirements.md)) | ✅ Done |
 | 1 | Project setup, architecture, theme, navigation | ✅ Done |
-| 2 | Dataset upload, validation, data quality | ⏳ Next |
-| 3 | Exploratory data analysis | Planned |
+| 2 | Dataset upload, validation, data quality | ✅ Done |
+| 3 | Exploratory data analysis | ⏳ Next |
 | 4 | Machine-learning engine | Planned |
 | 5 | Fraud prediction, risk intelligence, investigation | Planned |
 | 6 | Executive dashboard, reports, integration | Planned |
@@ -109,8 +109,20 @@ fraudshield-ai/
 
 The project uses the **Sparkov simulated credit-card transactions** dataset (Kaggle,
 "Credit Card Transactions Fraud Detection Dataset"). It is synthetic, with readable
-features such as merchant category, amount, time and customer location. Details and
-download instructions arrive in Phase 2.
+features such as merchant category, amount, time and customer location.
+
+```bash
+# 1. Download the dataset from Kaggle and copy fraudTrain.csv + fraudTest.csv to data/raw/
+# 2. Build the sample used by the app (~50,000 rows from the test file)
+python scripts/make_sample.py
+```
+
+Then open **Dataset Management** in the app, choose *Bundled sample dataset*, check the
+data quality and save it. Any CSV can also be uploaded; its columns are matched to
+FraudShield's standard columns first.
+
+See [docs/dataset.md](docs/dataset.md) for the schema, validation rules and performance
+measurements.
 
 ## License
 

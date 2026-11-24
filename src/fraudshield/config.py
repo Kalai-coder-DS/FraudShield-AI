@@ -22,6 +22,16 @@ RAW_DATA_DIR: Path = DATA_DIR / "raw"  # full dataset downloaded by the user (gi
 PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"  # caches and SQLite database (git-ignored)
 MODELS_DIR: Path = PROJECT_ROOT / "models"  # saved models + metadata
 DATABASE_PATH: Path = PROCESSED_DATA_DIR / "fraudshield.db"
+# Built from the Sparkov test file by scripts/make_sample.py (see docs/dataset.md)
+SAMPLE_DATASET_FILE: Path = SAMPLE_DATA_DIR / "transactions_sample.csv"
+
+# ---------------------------------------------------------------------------
+# Data processing
+# ---------------------------------------------------------------------------
+# Rows read from a CSV at a time. Lower it on a machine with little RAM.
+CSV_CHUNK_SIZE: int = 100_000
+# Share of rows the user can choose to load from a large file.
+SAMPLE_FRACTIONS: tuple[float, ...] = (1.0, 0.5, 0.25, 0.1, 0.05)
 
 # ---------------------------------------------------------------------------
 # Reproducibility
