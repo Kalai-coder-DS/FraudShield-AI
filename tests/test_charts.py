@@ -70,3 +70,28 @@ def test_rate_chart_values_are_percentages(df):
     table = a.fraud_rate_by_weekday(df)
     fig = charts.fraud_rate_chart(table, "t", "Day", 0.05)
     assert list(fig.data[0].y) == pytest.approx((table["fraud_rate"] * 100).tolist())
+
+
+def test_model_charts_build_from_metadata(tmp_path):
+    from conftest import SPARKOV_COLUMNS, make_signal_rows
+
+    from fraudshield.data.schema import suggest_mapping
+    from fraudshield.data.validation import process_dataset
+    from fraudshield.models import charts as mcharts
+    from fraudshield.models import registry
+    from fraudshield.models.training import train_and_evaluate
+
+    frames = []
+    for i, (n, start) in enumerate(((3000, "2020-01-01"), (1500, "2020-06-01"))):
+        path = tmp_path / f"{i}.csv"
+        make_signal_rows(n, start, i + 10).to_csv(path, index=False)
+        frames.append(process_dataset(path, suggest_mapping(SPARKOV_COLUMNS)).data)
+    result = train_and_evaluate(*frames, n_jobs=1, rf_trees=10, log=lambda *_: None)
+    meta = registry.save(result, tmp_path / "m")
+    figs = [
+        mcharts.pr_curve_chart(meta["models"], 0.01),
+        mcharts.roc_curve_chart(meta["models"]),
+        mcharts.confusion_chart(meta["models"][meta["selected_model"]]["test"]),
+        mcharts.importance_chart(meta["feature_importance"]),
+    ]
+    assert all(f.layout.title.text for f in figs)

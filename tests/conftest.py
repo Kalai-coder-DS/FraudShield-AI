@@ -97,3 +97,32 @@ def messy_csv(tmp_path):
     path = tmp_path / "messy.csv"
     df.to_csv(path, index=False)
     return path
+
+
+def make_signal_rows(n: int, start: str, seed: int) -> pd.DataFrame:
+    """TEST DATA in Sparkov format with a planted fraud pattern.
+
+    Fraud is made more likely late at night and in two categories, and fraud
+    amounts are several times the card's usual amount. Used only to check that
+    the model pipeline can find a known pattern.
+    """
+    import numpy as np
+
+    rng = np.random.default_rng(seed)
+    ts = pd.Timestamp(start) + pd.to_timedelta(np.sort(rng.integers(0, 120 * 86400, n)), unit="s")
+    cards = rng.integers(0, 60, n)
+    scale = np.exp(np.random.default_rng(0).normal(3.5, 0.4, 60))
+    cats = np.array(["grocery_pos", "shopping_net", "gas_transport", "misc_net", "home"])
+    cat = cats[rng.integers(0, len(cats), n)]
+    amt = scale[cards] * rng.lognormal(0, 0.5, n)
+    logit = -5.0 + 2.0 * np.isin(ts.hour, [22, 23, 0, 1, 2, 3]) + 1.0 * np.isin(cat, cats[[1, 3]])
+    fraud = rng.random(n) < 1 / (1 + np.exp(-logit))
+    amt = np.where(fraud, amt * rng.uniform(3, 8, n), amt)
+    rows = pd.DataFrame([make_row(i) for i in range(n)], columns=SPARKOV_COLUMNS)
+    rows["trans_date_trans_time"] = ts.strftime("%Y-%m-%d %H:%M:%S")
+    rows["cc_num"] = (4_000_000_000_000 + cards).astype(str)
+    rows["category"] = cat
+    rows["amt"] = np.round(amt, 2).astype(str)
+    rows["trans_num"] = [f"s{seed}-{i}" for i in range(n)]
+    rows["is_fraud"] = fraud.astype(int).astype(str)
+    return rows

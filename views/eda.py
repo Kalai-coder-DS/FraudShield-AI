@@ -13,8 +13,13 @@ from fraudshield.eda import analysis as a
 from fraudshield.eda import charts
 from fraudshield.features.basic import add_basic_features
 from fraudshield.storage import db
-from fraudshield.ui.components import escape_markdown, render_empty_state, render_header, render_kpi
-from fraudshield.ui.components import render_page_link
+from fraudshield.ui.components import (
+    escape_markdown,
+    render_empty_state,
+    render_header,
+    render_kpi,
+    render_page_link,
+)
 
 PLOT_CONFIG = {"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]}
 

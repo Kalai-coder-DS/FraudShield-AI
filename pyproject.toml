@@ -17,6 +17,11 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
+# Deprecation warnings raised from our own code fail the tests, so they are fixed early.
+filterwarnings = [
+    "error::DeprecationWarning:fraudshield.*",
+    "error::FutureWarning:fraudshield.*",
+]
 
 [tool.ruff]
 line-length = 100

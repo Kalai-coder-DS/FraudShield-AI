@@ -20,8 +20,8 @@ explains each score so an analyst knows what to investigate first.
 | 1 | Project setup, architecture, theme, navigation | ✅ Done |
 | 2 | Dataset upload, validation, data quality | ✅ Done |
 | 3 | Exploratory data analysis | ✅ Done |
-| 4 | Machine-learning engine | ⏳ Next |
-| 5 | Fraud prediction, risk intelligence, investigation | Planned |
+| 4 | Machine-learning engine | ✅ Done |
+| 5 | Fraud prediction, risk intelligence, investigation | ⏳ Next |
 | 6 | Executive dashboard, reports, integration | Planned |
 | 7 | Testing & performance optimisation | Planned |
 | 8 | Final documentation & release | Planned |
@@ -116,6 +116,12 @@ features such as merchant category, amount, time and customer location.
 # 1. Download the dataset from Kaggle and copy fraudTrain.csv + fraudTest.csv to data/raw/
 # 2. Build the sample used by the app (~50,000 rows from the test file)
 python scripts/make_sample.py
+```
+
+Train the models (about 1–3 minutes; see [docs/models.md](docs/models.md)):
+
+```bash
+python scripts/train_models.py
 ```
 
 Then open **Dataset Management** in the app, choose *Bundled sample dataset*, check the

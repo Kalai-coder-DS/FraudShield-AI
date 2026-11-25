@@ -82,6 +82,7 @@ MODULES: tuple[Module, ...] = (
             "Side-by-side model comparison",
             "Why accuracy alone is misleading for rare fraud",
         ),
+        ready=True,
     ),
     Module(
         key="prediction",
