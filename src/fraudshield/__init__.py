@@ -1,3 +1,3 @@
 """FraudShield AI: fraud detection and risk intelligence platform."""
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"

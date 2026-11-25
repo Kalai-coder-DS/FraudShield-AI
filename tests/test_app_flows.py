@@ -85,7 +85,7 @@ def test_one_click_sample_then_every_page_works(app_env):
 def test_dashboard_shows_real_numbers(app_env):
     load_sample()
     text = text_of(open_page("dashboard"))
-    assert "need an analyst's attention" in text
+    assert "need an analyst's attention" in text  # plain apostrophe, not &#x27;
     assert "800" in text  # transactions analysed
 
 

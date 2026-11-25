@@ -203,3 +203,27 @@ def test_deleting_dataset_removes_scores(scored_db):
     ds, path, _, _ = scored_db
     db.delete_dataset(ds, path)
     assert db.scores_model(ds, path) is None
+
+
+def test_describe_value_for_every_feature_group():
+    row = pd.Series(
+        {
+            "timestamp": pd.Timestamp("2024-01-03 22:15"),  # a Wednesday
+            "amount": 1234.5,
+            "category": "shopping_net",
+            "dob": pd.Timestamp("1984-01-03"),
+            "lat": 0.0,
+            "long": 0.0,
+            "merch_lat": 10 / 111.195,
+            "merch_long": 0.0,
+            "city_pop": 25000.0,
+        }
+    )
+    values = {g: explain.describe_value(g, row, 2.0) for g in explain.FEATURE_GROUPS}
+    assert values["Day of week"] == "Wed"
+    assert values["Time of day"] == "22:15"
+    assert values["Amount"] == "1,234.50"
+    assert values["Customer age"] == "40 years"
+    assert values["Distance to merchant"] == "10 km"
+    assert values["City population"] == "25,000"
+    assert "above this card's usual" in values["Amount vs. card's usual"]
