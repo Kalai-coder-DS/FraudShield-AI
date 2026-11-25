@@ -76,3 +76,19 @@ def mask_card(value: object) -> str:
     if text in ("", "nan", "<NA>", "None"):
         return ""
     return f"•••• {text[-4:]}" if len(text) > 4 else "••••"
+
+
+def render_page_link(page: str, label: str, icon: str | None = None) -> None:
+    """Link to another page; shows a sidebar hint instead of crashing outside app navigation."""
+    import streamlit as st
+    from streamlit import errors
+
+    expected = tuple(
+        e
+        for e in (getattr(errors, "StreamlitPageNotFoundError", None), errors.StreamlitAPIException)
+        if e is not None
+    )
+    try:
+        st.page_link(page, label=label, icon=icon)
+    except expected:
+        st.caption(f"{label}: use the sidebar.")

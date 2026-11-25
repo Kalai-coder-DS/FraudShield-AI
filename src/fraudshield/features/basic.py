@@ -38,7 +38,7 @@ def add_basic_features(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
     ts = out["timestamp"]
     out["hour"] = ts.dt.hour.astype("int8")
-    out["weekday"] = ts.dt.dayofweek.astype("int8")  # 0 = Monday
+    out["weekday"] = ts.dt.day_of_week.astype("int8")  # 0 = Monday
     out["date"] = ts.dt.normalize()
     out["log_amount"] = np.log1p(out["amount"])
 

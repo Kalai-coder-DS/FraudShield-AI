@@ -14,6 +14,7 @@ from fraudshield.eda import charts
 from fraudshield.features.basic import add_basic_features
 from fraudshield.storage import db
 from fraudshield.ui.components import escape_markdown, render_empty_state, render_header, render_kpi
+from fraudshield.ui.components import render_page_link
 
 PLOT_CONFIG = {"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]}
 
@@ -31,7 +32,7 @@ if active is None:
         "Load and save a dataset in Dataset Management first. "
         "The analysis runs on the active dataset.",
     )
-    st.page_link("views/dataset.py", label="Go to Dataset Management", icon=":material/table_view:")
+    render_page_link("views/dataset.py", "Go to Dataset Management", ":material/table_view:")
     st.stop()
 
 
