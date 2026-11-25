@@ -19,6 +19,7 @@ from fraudshield.data.loader import DatasetLoadError, detect_format, read_column
 from fraudshield.data.schema import FIELDS, check_mapping, suggest_mapping
 from fraudshield.data.validation import DataReport, DatasetValidationError, process_dataset
 from fraudshield.storage import db
+from fraudshield.ui import theme
 from fraudshield.ui.components import (
     escape_markdown,
     mask_card,
@@ -131,7 +132,7 @@ def show_report(report: DataReport, preview: pd.DataFrame | None) -> None:
         if missing.empty:
             st.success("No column has missing values.", icon=":material/verified:")
         else:
-            st.bar_chart(missing, x="column", y="% missing", color="#E63946")
+            st.bar_chart(missing, x="column", y="% missing", color=theme.SECONDARY)
             st.caption("Percentage of analysed rows with no value in each column.")
 
     if preview is not None:

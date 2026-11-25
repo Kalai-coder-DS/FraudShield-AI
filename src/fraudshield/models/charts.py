@@ -10,7 +10,7 @@ from fraudshield.ui import theme as t
 MODEL_COLORS = {
     "Random Forest": t.PRIMARY,
     "Logistic Regression": t.SECONDARY,
-    "Decision Tree": "#4CC9A0",
+    "Decision Tree": "#A78BFA",
     "Isolation Forest": "#8D99AE",
 }
 
@@ -104,7 +104,8 @@ def confusion_chart(test: dict) -> go.Figure:
         ["Fraud missed", "Fraud caught"],
     ]
     text = [[f"{labels[i][j]}<br><b>{z[i][j]:,}</b>" for j in range(2)] for i in range(2)]
-    # Colour by meaning, not by count: good outcomes muted, errors amber/red, catches red.
+    # Colour by meaning, not by count: approved = neutral, false alarm = amber,
+    # missed fraud = red, caught fraud = teal (the outcome we want).
     colors = [[0.0, 0.55], [0.8, 1.0]]
     fig = go.Figure(
         go.Heatmap(
@@ -114,7 +115,7 @@ def confusion_chart(test: dict) -> go.Figure:
             text=text,
             texttemplate="%{text}",
             textfont=dict(size=14, color=t.TEXT),
-            colorscale=[[0, t.CARD], [0.55, "#7A5A2A"], [0.8, "#6B2A33"], [1, t.PRIMARY]],
+            colorscale=[[0, t.CARD], [0.55, "#6B4A14"], [0.8, "#6B2A33"], [1, "#0F5C55"]],
             showscale=False,
             hoverinfo="skip",
             xgap=3,

@@ -6,33 +6,35 @@ All colours are defined once here and reused by the CSS, the Plotly charts
 
 from __future__ import annotations
 
-# Base surfaces (dark charcoal with a red tint)
-BACKGROUND = "#140D0E"
-SIDEBAR = "#1E1315"
-CARD = "#291A1D"
-CARD_BORDER = "#3F272B"
+# Base surfaces: neutral graphite, so colour is kept for meaning
+BACKGROUND = "#111318"
+SIDEBAR = "#171A21"
+CARD = "#1E222B"
+CARD_BORDER = "#2B313C"
 
-# Accents: red signals "alert / fraud"; amber is the supporting accent
-PRIMARY = "#E63946"  # alert red
-PRIMARY_SOFT = "#9E2A35"  # dark red for hover states and fills
-SECONDARY = "#F4A261"  # warm amber
-AMBER = "#F5C04A"
+# Brand accent: teal (trust, security). Deep enough for white button text.
+PRIMARY = "#0D9488"
+PRIMARY_SOFT = "#0F766E"
+SECONDARY = "#F5A524"  # amber: labels and warnings
+AMBER = "#F5A524"
+
+# Red is reserved for fraud and critical risk, so it always means "danger".
+FRAUD = "#E5484D"
 
 # Text
-TEXT = "#F5EDEE"  # soft white
-TEXT_MUTED = "#B8A4A7"  # muted grey
+TEXT = "#E8EAED"  # soft white
+TEXT_MUTED = "#9AA3AE"  # muted grey
 
-# Semantic colours for the four risk tiers (low -> critical). They go from green
-# to bright red, so the brightest red in the product always means Critical risk.
+# Risk tiers go from green to bright red; the brightest red always means Critical.
 RISK_COLORS: dict[str, str] = {
-    "Low": "#4CC9A0",
+    "Low": "#4ADE80",
     "Medium": AMBER,
-    "High": "#FF8C42",
+    "High": "#FB923C",
     "Critical": "#FF4D6D",
 }
 
 # Ordered palette for categorical charts
-CHART_SEQUENCE: list[str] = [PRIMARY, SECONDARY, "#4CC9A0", "#8D99AE", AMBER, "#FF8C42"]
+CHART_SEQUENCE: list[str] = [PRIMARY, SECONDARY, "#A78BFA", "#8D99AE", "#4ADE80", FRAUD]
 
 GLOBAL_CSS = f"""
 <style>
@@ -103,6 +105,6 @@ section[data-testid="stSidebar"] {{
     font-size: .72rem; font-weight: 600;
 }}
 .fs-badge-ready   {{ background: rgba(76, 201, 160, .15); color: #4CC9A0; }}
-.fs-badge-planned {{ background: rgba(245, 192, 74, .15); color: {AMBER}; }}
+.fs-badge-planned {{ background: rgba(245, 165, 36, .15); color: {AMBER}; }}
 </style>
 """

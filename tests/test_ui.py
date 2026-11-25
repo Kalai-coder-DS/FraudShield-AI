@@ -104,3 +104,15 @@ def test_mask_card_shows_only_last_four_digits():
 
 def test_escape_markdown_neutralises_formatting():
     assert components.escape_markdown("**bold** [x](y)") == r"\*\*bold\*\* \[x\]\(y\)"
+
+
+def test_red_is_reserved_for_fraud():
+    # The brand accent must not be red, so red keeps meaning "fraud / danger".
+    assert theme.FRAUD.upper() != theme.PRIMARY.upper()
+    assert _contrast(theme.FRAUD, theme.CARD) >= 3
+    assert _contrast(theme.PRIMARY, theme.BACKGROUND) >= 3
+
+
+def test_white_button_text_is_readable_on_brand_colour():
+    # Streamlit draws primary buttons with white text on primaryColor.
+    assert _contrast("#FFFFFF", theme.PRIMARY) >= 3

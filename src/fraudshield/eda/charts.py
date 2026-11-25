@@ -1,8 +1,8 @@
 """Plotly charts for the EDA module.
 
 Each function receives a small summary table from ``analysis.py`` and returns
-a styled figure. Fraud is always drawn in the alert red and legitimate
-transactions in a neutral grey-blue, so the colour meaning never changes.
+a styled figure. Fraud is always drawn in red and legitimate transactions
+in a neutral grey-blue, so the colour meaning never changes.
 """
 
 from __future__ import annotations
@@ -16,8 +16,8 @@ from fraudshield.eda.analysis import FRAUD, LEGIT
 from fraudshield.ui import theme as t
 
 LEGIT_COLOR = "#8D99AE"
-CLASS_COLORS = {FRAUD: t.PRIMARY, LEGIT: LEGIT_COLOR, "All": t.SECONDARY}
-UNRELIABLE_COLOR = "#6B4A50"
+CLASS_COLORS = {FRAUD: t.FRAUD, LEGIT: LEGIT_COLOR, "All": t.PRIMARY}
+UNRELIABLE_COLOR = "#5C3A40"  # muted red: rate based on too few transactions
 _CONFIG_FONT = dict(color=t.TEXT_MUTED, size=12)
 
 
@@ -158,7 +158,7 @@ def fraud_rate_chart(
         thickness=1,
         width=3,
     )
-    colors = [t.PRIMARY if ok else UNRELIABLE_COLOR for ok in data["reliable"]]
+    colors = [t.FRAUD if ok else UNRELIABLE_COLOR for ok in data["reliable"]]
     custom = np.stack(
         [data["transactions"], data["fraud"], data["ci_low"] * 100, data["ci_high"] * 100], axis=-1
     )
@@ -227,7 +227,7 @@ def daily_activity_chart(daily: pd.DataFrame) -> go.Figure:
                 x=daily["date"],
                 y=daily["fraud"],
                 name="Fraud transactions",
-                marker_color=t.PRIMARY,
+                marker_color=t.FRAUD,
                 opacity=0.8,
                 hovertemplate="%{x|%d %b %Y}: %{y:,} fraud<extra></extra>",
             ),
@@ -263,7 +263,7 @@ def correlation_heatmap(corr: pd.DataFrame) -> go.Figure:
             y=labels,
             zmin=-1,
             zmax=1,
-            colorscale=[[0.0, "#3D7EA6"], [0.5, t.CARD], [1.0, t.PRIMARY]],
+            colorscale=[[0.0, t.PRIMARY], [0.5, t.CARD], [1.0, t.FRAUD]],
             texttemplate="%{z:.2f}",
             hovertemplate="%{y} vs %{x}: %{z:.2f}<extra></extra>",
             colorbar=dict(title="Correlation", outlinewidth=0),
