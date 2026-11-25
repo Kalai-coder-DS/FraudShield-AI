@@ -144,3 +144,27 @@ def importance_chart(importance: list[dict]) -> go.Figure:
         "",
         height=max(300, 34 * len(rows) + 120),
     )
+
+
+def contribution_chart(table, values: dict | None = None) -> go.Figure:
+    """Per-feature contribution to one transaction's fraud probability."""
+    data = table.iloc[::-1]  # biggest effect at the top
+    values = values or {}
+    labels = [f"{f}  ({values[f]})" if values.get(f, "—") != "—" else f for f in data["feature"]]
+    fig = go.Figure(
+        go.Bar(
+            x=data["contribution"] * 100,
+            y=labels,
+            orientation="h",
+            marker_color=[t.FRAUD if c > 0 else t.PRIMARY for c in data["contribution"]],
+            hovertemplate="%{y}<br>%{x:+.1f} percentage points<extra></extra>",
+        )
+    )
+    fig.add_vline(x=0, line_color=t.TEXT_MUTED, line_width=1)
+    return _style(
+        fig,
+        "What moved this transaction's score",
+        "Change in fraud probability (percentage points)",
+        "",
+        height=max(300, 36 * len(data) + 120),
+    )

@@ -21,8 +21,8 @@ explains each score so an analyst knows what to investigate first.
 | 2 | Dataset upload, validation, data quality | ✅ Done |
 | 3 | Exploratory data analysis | ✅ Done |
 | 4 | Machine-learning engine | ✅ Done |
-| 5 | Fraud prediction, risk intelligence, investigation | ⏳ Next |
-| 6 | Executive dashboard, reports, integration | Planned |
+| 5 | Fraud prediction, risk intelligence, investigation | ✅ Done |
+| 6 | Executive dashboard, reports, integration | ⏳ Next |
 | 7 | Testing & performance optimisation | Planned |
 | 8 | Final documentation & release | Planned |
 

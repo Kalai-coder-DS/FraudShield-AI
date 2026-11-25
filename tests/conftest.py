@@ -126,3 +126,21 @@ def make_signal_rows(n: int, start: str, seed: int) -> pd.DataFrame:
     rows["trans_num"] = [f"s{seed}-{i}" for i in range(n)]
     rows["is_fraud"] = fraud.astype(int).astype(str)
     return rows
+
+
+@pytest.fixture(scope="session")
+def small_model(tmp_path_factory):
+    """A small model trained on TEST DATA with a planted pattern, plus its test frame."""
+    from fraudshield.data.schema import suggest_mapping
+    from fraudshield.data.validation import process_dataset
+    from fraudshield.models.training import train_and_evaluate
+
+    tmp = tmp_path_factory.mktemp("small_model")
+    frames = []
+    for i, (n, start) in enumerate(((6000, "2020-01-01"), (2500, "2020-06-01"))):
+        path = tmp / f"{i}.csv"
+        make_signal_rows(n, start, 40 + i).to_csv(path, index=False)
+        frames.append(process_dataset(path, suggest_mapping(SPARKOV_COLUMNS)).data)
+    result = train_and_evaluate(*frames, n_jobs=1, rf_trees=25, log=lambda *_: None)
+    model = result.results["Random Forest"].model
+    return model, frames[1], result

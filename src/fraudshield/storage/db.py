@@ -57,6 +57,16 @@ CREATE TABLE IF NOT EXISTS transactions (
 );
 CREATE INDEX IF NOT EXISTS idx_tx_id   ON transactions(dataset_id, transaction_id);
 CREATE INDEX IF NOT EXISTS idx_tx_time ON transactions(dataset_id, timestamp);
+CREATE TABLE IF NOT EXISTS scores (
+    dataset_id        INTEGER NOT NULL REFERENCES datasets(id) ON DELETE CASCADE,
+    row_number        INTEGER NOT NULL,
+    model_sha256      TEXT    NOT NULL,
+    fraud_probability REAL    NOT NULL,
+    predicted_fraud   INTEGER NOT NULL,
+    risk_tier         TEXT    NOT NULL,
+    PRIMARY KEY (dataset_id, row_number)
+);
+CREATE INDEX IF NOT EXISTS idx_scores_prob ON scores(dataset_id, fraud_probability);
 """
 
 
@@ -254,5 +264,147 @@ def delete_dataset(dataset_id: int, db_path: Path = DATABASE_PATH) -> None:
         cur = conn.execute("DELETE FROM datasets WHERE id = ?", (dataset_id,))
         if cur.rowcount == 0:
             raise KeyError(f"Dataset {dataset_id} does not exist.")
-        # ON DELETE CASCADE removes the transactions; this is a safety net.
+        # ON DELETE CASCADE removes the transactions and scores; this is a safety net.
         conn.execute("DELETE FROM transactions WHERE dataset_id = ?", (dataset_id,))
+        conn.execute("DELETE FROM scores WHERE dataset_id = ?", (dataset_id,))
+
+
+# ---------------------------------------------------------------------------
+# Scores (model output per transaction)
+# ---------------------------------------------------------------------------
+
+
+def scores_model(dataset_id: int, db_path: Path = DATABASE_PATH) -> str | None:
+    """Fingerprint of the model that produced the stored scores (None if not scored)."""
+    with connect(db_path) as conn:
+        row = conn.execute(
+            "SELECT model_sha256 FROM scores WHERE dataset_id = ? LIMIT 1", (dataset_id,)
+        ).fetchone()
+    return row[0] if row else None
+
+
+def save_scores(
+    dataset_id: int, scores: pd.DataFrame, model_sha256: str, db_path: Path = DATABASE_PATH
+) -> None:
+    """Replace the stored scores of a dataset. ``scores`` is indexed by row number."""
+    rows = (
+        (dataset_id, int(i), model_sha256, float(p), int(y), str(t))
+        for i, p, y, t in zip(
+            scores.index,
+            scores["fraud_probability"],
+            scores["predicted_fraud"],
+            scores["risk_tier"],
+            strict=True,
+        )
+    )
+    with connect(db_path) as conn:
+        conn.execute("DELETE FROM scores WHERE dataset_id = ?", (dataset_id,))
+        conn.executemany("INSERT INTO scores VALUES (?, ?, ?, ?, ?, ?)", rows)
+
+
+def load_scores(dataset_id: int, db_path: Path = DATABASE_PATH) -> pd.DataFrame:
+    with connect(db_path) as conn:
+        df = pd.read_sql_query(
+            "SELECT row_number, fraud_probability, predicted_fraud, risk_tier FROM scores "
+            "WHERE dataset_id = ? ORDER BY row_number",
+            conn,
+            params=(dataset_id,),
+        )
+    return df.set_index("row_number")
+
+
+@dataclass
+class TransactionFilter:
+    """Search criteria for the investigation table. Empty fields mean "any"."""
+
+    text: str = ""  # part of a transaction ID
+    tiers: tuple[str, ...] = ()
+    categories: tuple[str, ...] = ()
+    min_amount: float | None = None
+    max_amount: float | None = None
+    date_from: str | None = None  # "YYYY-MM-DD"
+    date_to: str | None = None
+    label: int | None = None  # 1 = known fraud, 0 = known legitimate
+    flagged_only: bool = False
+
+
+def _where(dataset_id: int, f: TransactionFilter) -> tuple[str, list]:
+    # Only placeholders (?) carry user input, never string formatting: no SQL injection.
+    clauses, params = ["t.dataset_id = ?"], [dataset_id]
+    if f.text.strip():
+        clauses.append("t.transaction_id LIKE ? ESCAPE '\\'")
+        escaped = f.text.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        params.append(f"%{escaped}%")
+    if f.tiers:
+        clauses.append(f"s.risk_tier IN ({', '.join('?' * len(f.tiers))})")
+        params += list(f.tiers)
+    if f.categories:
+        clauses.append(f"t.category IN ({', '.join('?' * len(f.categories))})")
+        params += list(f.categories)
+    if f.min_amount is not None:
+        clauses.append("t.amount >= ?")
+        params.append(f.min_amount)
+    if f.max_amount is not None:
+        clauses.append("t.amount <= ?")
+        params.append(f.max_amount)
+    if f.date_from:
+        clauses.append("t.timestamp >= ?")
+        params.append(f.date_from)
+    if f.date_to:
+        clauses.append("t.timestamp < date(?, '+1 day')")
+        params.append(f.date_to)
+    if f.label is not None:
+        clauses.append("t.is_fraud = ?")
+        params.append(int(f.label))
+    if f.flagged_only:
+        clauses.append("s.predicted_fraud = 1")
+    return " AND ".join(clauses), params
+
+
+_JOIN = (
+    "FROM transactions t JOIN scores s "
+    "ON s.dataset_id = t.dataset_id AND s.row_number = t.row_number"
+)
+
+
+def count_transactions(dataset_id: int, f: TransactionFilter, db_path: Path = DATABASE_PATH) -> int:
+    where, params = _where(dataset_id, f)
+    with connect(db_path) as conn:
+        return int(conn.execute(f"SELECT COUNT(*) {_JOIN} WHERE {where}", params).fetchone()[0])
+
+
+def search_transactions(
+    dataset_id: int,
+    f: TransactionFilter,
+    page: int = 1,
+    page_size: int = 50,
+    db_path: Path = DATABASE_PATH,
+) -> pd.DataFrame:
+    """One page of scored transactions matching ``f``, riskiest first."""
+    if page < 1 or page_size < 1:
+        raise ValueError("page and page_size must be at least 1")
+    where, params = _where(dataset_id, f)
+    cols = ", ".join(f't."{c}"' for c in _dataset_columns(dataset_id, db_path))
+    sql = (
+        f"SELECT t.row_number, {cols}, s.fraud_probability, s.predicted_fraud, s.risk_tier "
+        f"{_JOIN} WHERE {where} ORDER BY s.fraud_probability DESC, t.row_number "
+        "LIMIT ? OFFSET ?"
+    )
+    with connect(db_path) as conn:
+        df = pd.read_sql_query(sql, conn, params=[*params, page_size, (page - 1) * page_size])
+    return _from_sql_frame(df.set_index("row_number"))
+
+
+def get_transaction(
+    dataset_id: int, transaction_id: str, db_path: Path = DATABASE_PATH
+) -> pd.DataFrame:
+    """A single transaction (exact ID match) with its row number as index."""
+    cols = ", ".join(f'"{c}"' for c in _dataset_columns(dataset_id, db_path))
+    with connect(db_path) as conn:
+        df = pd.read_sql_query(
+            f"SELECT row_number, {cols} FROM transactions "
+            "WHERE dataset_id = ? AND transaction_id = ?",
+            conn,
+            params=(dataset_id, transaction_id),
+        )
+    return _from_sql_frame(df.set_index("row_number"))

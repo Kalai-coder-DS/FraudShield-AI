@@ -96,6 +96,7 @@ MODULES: tuple[Module, ...] = (
             "Fraud probability, predicted class and risk tier",
             "Top factors behind the score",
         ),
+        ready=True,
     ),
     Module(
         key="risk",
@@ -111,6 +112,7 @@ MODULES: tuple[Module, ...] = (
             "High-risk transaction table",
             "Patterns among suspicious transactions",
         ),
+        ready=True,
     ),
     Module(
         key="investigation",
@@ -123,6 +125,7 @@ MODULES: tuple[Module, ...] = (
             "Search by transaction ID; filter by risk, amount, date and category",
             "Full transaction details with model score and explanation",
         ),
+        ready=True,
     ),
     Module(
         key="reports",
