@@ -18,6 +18,7 @@ from fraudshield.storage import db
 from fraudshield.ui import model_state as ms
 from fraudshield.ui import theme
 from fraudshield.ui.components import escape_markdown, mask_card, render_header, render_kpi
+from fraudshield.ui.prediction_view import transaction_columns
 
 PLOT = {"displaylogo": False}
 
@@ -247,12 +248,7 @@ with table_tab:
         st.dataframe(
             shown,
             hide_index=True,
-            column_config={
-                "fraud_probability": st.column_config.ProgressColumn(
-                    "Fraud probability", format="%.1f%%", min_value=0, max_value=100
-                ),
-                "is_fraud": st.column_config.NumberColumn("Known label (1 = fraud)"),
-            },
+            column_config=transaction_columns(),
         )
         st.caption(
             f"{total:,} High and Critical transactions, riskiest first. Open Transaction "

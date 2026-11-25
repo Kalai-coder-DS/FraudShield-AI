@@ -95,3 +95,19 @@ def test_model_charts_build_from_metadata(tmp_path):
         mcharts.importance_chart(meta["feature_importance"]),
     ]
     assert all(f.layout.title.text for f in figs)
+
+
+def test_dashboard_charts(df):
+    weekly = a.weekly_activity(df.assign(predicted_fraud=(df["amount"] > 100).astype(int)))
+    tiers = [
+        {"tier": t, "transactions": n}
+        for t, n in zip(("Low", "Medium", "High", "Critical"), (900, 50, 30, 20), strict=True)
+    ]
+    cats = [{"category": "a", "lift": 2.0, "share_of_high_risk": 0.4, "share_of_all": 0.2}]
+    for fig in (
+        charts.weekly_activity_chart(weekly),
+        charts.weekly_activity_chart(weekly.drop(columns=["fraud"], errors="ignore")),
+        charts.tier_bar_chart(tiers),
+        charts.category_lift_chart(cats),
+    ):
+        assert fig.layout.title.text

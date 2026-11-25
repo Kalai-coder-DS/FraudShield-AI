@@ -9,10 +9,12 @@ import pandas as pd
 import streamlit as st
 
 from fraudshield.models import scoring
+from fraudshield.reports.summary import format_probability
 from fraudshield.storage import db
 from fraudshield.ui import model_state as ms
 from fraudshield.ui.components import escape_markdown, render_empty_state, render_header
 from fraudshield.ui.prediction_view import DISCLAIMER, show_result
+from fraudshield.ui.sample_loader import render_load_sample_button
 
 render_header(
     "Fraud Prediction",
@@ -36,9 +38,9 @@ with pick_tab:
     if active is None:
         render_empty_state(
             "No active dataset",
-            "Save a dataset in Dataset Management to pick transactions from it, "
-            "or use the 'Enter details' tab.",
+            "Load the sample dataset to pick transactions from it, or use the 'Enter details' tab.",
         )
+        render_load_sample_button("prediction")
     else:
         scores = ms.ensure_scores(active, model, meta)
         data = ms.load_dataset(active.id)
@@ -127,7 +129,7 @@ with manual_tab:
                 icon=":material/warning:",
             )
             p = float(model.predict_proba(row)[:, 1][0])
-            st.metric("Fraud probability", f"{p:.1%}")
+            st.metric("Fraud probability", format_probability(p))
         else:
             bg = ms.background(background_source.id, meta["model_sha256"], parts)
             show_result(row, parts, bg, threshold, show_details=False)

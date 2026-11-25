@@ -205,14 +205,14 @@ The key principle: **all logic lives in `src/` and is tested with pytest without
 | Seaborn | **Drop** | Duplicates Plotly + Matplotlib; nothing it adds is required |
 | **SQLite** | **Use** | Built into Python (no install, no server). Stores scored transactions so tables are paginated with `LIMIT/OFFSET` instead of holding everything in memory; also stores run history and analyst notes |
 | joblib | **Use** | Save/load models (installed with sklearn) |
-| fpdf2 *or* reportlab | **Use one** | PDF reports. fpdf2 is smaller and simpler; reportlab is more powerful. Recommendation: **fpdf2** |
+| reportlab | **Use** | PDF reports. (fpdf2 was the first choice; reportlab was used because the PDF could be fully tested during development.) |
 | pytest | **Use** | Unit and integration tests |
 | Parquet (pyarrow) | **Optional** | Fast, compact cache of processed data. Use only if the dataset is large |
 | SHAP | **Optional** | See explainability above |
 | Docker, Redis, Celery, FastAPI, React, PostgreSQL | **Reject** | Not needed for a single-user local app; would strain your laptop |
 | Ruff (linter/formatter) | **Optional, recommended** | Tiny, fast, and shows code-quality discipline |
 
-**Estimated runtime dependencies:** about 7 packages (`pandas`, `numpy`, `scikit-learn`, `streamlit`, `plotly`, `matplotlib`, `fpdf2`) + `pytest` for development.
+**Runtime dependencies:** 7 packages (`pandas`, `numpy`, `scikit-learn`, `streamlit`, `plotly`, `matplotlib`, `reportlab`) + `pytest` for development.
 
 ---
 

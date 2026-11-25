@@ -397,3 +397,26 @@ def key_findings(df: pd.DataFrame) -> list[str]:
             f"against {out['fraud_rate_others']:.2%} for the rest."
         )
     return findings
+
+
+def weekly_activity(df: pd.DataFrame) -> pd.DataFrame:
+    """Transactions per week, plus flagged and known fraud counts when available.
+
+    Weekly totals are easier to read than daily ones: daily fraud counts are small
+    and jump around, which hides the trend.
+    """
+    week = df["timestamp"].dt.to_period("W-SUN").dt.start_time
+    # The first and last week of a dataset are usually only partly covered; they would
+    # look like sudden drops. They are left out when the data spans more than 3 weeks.
+    days = df["timestamp"].dt.normalize().groupby(week).nunique()
+    if len(days) > 3:
+        partial_edges = [w for w in (days.index[0], days.index[-1]) if days[w] < 7]
+        keep = ~week.isin(partial_edges)
+        df, week = df[keep], week[keep]
+    out = df.groupby(week)["amount"].agg(["size", "sum"])
+    out.columns = ["transactions", "amount"]
+    if "predicted_fraud" in df:
+        out["flagged"] = (df["predicted_fraud"] == 1).groupby(week).sum().astype(int)
+    if has_labels(df):
+        out["fraud"] = pd.Series(label_mask(df, 1), index=df.index).groupby(week).sum().astype(int)
+    return out.rename_axis("week").reset_index()

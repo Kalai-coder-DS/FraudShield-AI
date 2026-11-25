@@ -30,6 +30,7 @@ from fraudshield.ui.components import (
 
 NOT_AVAILABLE = "— not in this file —"
 SEVERITY_LABEL = {"error": "🔴 Error", "warning": "🟠 Warning", "info": "🔵 Info"}
+LARGE_FILE_MB = 100  # files at least this big offer loading only a share of rows
 SOURCES = ("Upload a CSV file", "Bundled sample dataset", "Large file in data/raw folder")
 
 render_header(
@@ -93,17 +94,15 @@ def show_report(report: DataReport, preview: pd.DataFrame | None) -> None:
     if not report.issues:
         st.success("No problems found.", icon=":material/verified:")
     else:
-        st.dataframe(
-            pd.DataFrame(
-                {
-                    "Severity": [SEVERITY_LABEL[i.severity] for i in report.issues],
-                    "What was found and what was done": [i.message for i in report.issues],
-                    "Column": [i.column or "—" for i in report.issues],
-                    "Examples": [", ".join(i.examples) for i in report.issues],
-                }
-            ),
-            hide_index=True,
-        )
+        for issue in report.issues:
+            with st.container(border=True):
+                column = f" · column `{issue.column}`" if issue.column else ""
+                st.markdown(
+                    f"**{SEVERITY_LABEL[issue.severity]}**{column}  \n"
+                    f"{escape_markdown(issue.message)}"
+                )
+                if issue.examples:
+                    st.caption("Examples: " + escape_markdown(", ".join(issue.examples)))
 
     left, right = st.columns([3, 2])
     with left:
@@ -151,7 +150,12 @@ def show_report(report: DataReport, preview: pd.DataFrame | None) -> None:
 
 def choose_source() -> tuple[bytes | Path, str, str] | None:
     """Return (data source, description, suggested name), or None if nothing chosen."""
-    choice = st.radio("Where is the data?", SOURCES, horizontal=True)
+    choice = st.radio(
+        "Where is the data?",
+        SOURCES,
+        index=1 if SAMPLE_DATASET_FILE.is_file() else 0,
+        horizontal=True,
+    )
 
     if choice == SOURCES[0]:
         uploaded = st.file_uploader(
@@ -193,36 +197,50 @@ def choose_source() -> tuple[bytes | Path, str, str] | None:
 
 def mapping_form(columns: list[str], key: str, size_mb: float):
     suggested = suggest_mapping(columns)
+    matched = sum(1 for v in suggested.values() if v)
+    all_required = not check_mapping(suggested)
     with st.form(f"mapping-{key}"):
-        st.markdown("##### Match your columns")
-        st.caption(
-            "FraudShield uses standard column names. Columns were matched automatically; "
-            "check them and fix any that are wrong. Fields marked * are required."
-        )
-        options = [NOT_AVAILABLE, *columns]
-        mapping = {}
-        grid = st.columns(3)
-        for i, field in enumerate(FIELDS):
-            default = suggested.get(field.name)
-            with grid[i % 3]:
-                choice = st.selectbox(
-                    f"{field.name}{' *' if field.required else ''}",
-                    options,
-                    index=options.index(default) if default else 0,
-                    help=field.description,
-                    key=f"map-{key}-{field.name}",
-                )
-            mapping[field.name] = None if choice == NOT_AVAILABLE else choice
+        if all_required:
+            st.success(
+                f"{matched} of {len(FIELDS)} columns were matched automatically, including all "
+                "required ones. You can go straight to the quality check.",
+                icon=":material/check_circle:",
+            )
+        else:
+            st.warning(
+                "Some required columns could not be matched automatically. Choose them below.",
+                icon=":material/warning:",
+            )
+        with st.expander("Review column matching", expanded=not all_required):
+            st.caption(
+                "FraudShield uses standard column names. Only change a field if it points to "
+                "the wrong column. Fields marked * are required."
+            )
+            options = [NOT_AVAILABLE, *columns]
+            mapping = {}
+            grid = st.columns(3)
+            for i, field in enumerate(FIELDS):
+                default = suggested.get(field.name)
+                with grid[i % 3]:
+                    choice = st.selectbox(
+                        f"{field.name}{' *' if field.required else ''}",
+                        options,
+                        index=options.index(default) if default else 0,
+                        help=field.description,
+                        key=f"map-{key}-{field.name}",
+                    )
+                mapping[field.name] = None if choice == NOT_AVAILABLE else choice
 
-        fractions = sorted(SAMPLE_FRACTIONS)
-        fraction = st.select_slider(
-            "Share of rows to load",
-            options=fractions,
-            value=1.0 if size_mb < 100 else 0.25,
-            format_func=lambda f: f"{f:.0%}",
-            help="Loading a random share of a large file saves memory and time. "
-            "The fraud rate stays the same on average.",
-        )
+        fraction = 1.0
+        if size_mb >= LARGE_FILE_MB:
+            fraction = st.select_slider(
+                "Share of rows to load (large file)",
+                options=sorted(SAMPLE_FRACTIONS),
+                value=0.25,
+                format_func=lambda f: f"{f:.0%}",
+                help="Loading a random share of a large file saves memory and time. "
+                "The fraud rate stays the same on average.",
+            )
         submitted = st.form_submit_button("Check data quality", type="primary")
     return submitted, mapping, fraction
 

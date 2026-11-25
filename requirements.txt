@@ -1,10 +1,12 @@
 # Runtime dependencies. New packages are added only in the phase that first uses them
-# (matplotlib + fpdf2 arrive in Phase 6).
+# matplotlib draws the PDF charts; reportlab builds the PDF.
 streamlit>=1.40,<2
 pandas>=2.1
 numpy>=1.26
 plotly>=5.20
 scikit-learn>=1.6
+matplotlib>=3.8
+reportlab>=4.0
 
 # Installs the project's own package (src/fraudshield) so `import fraudshield` works.
 -e .

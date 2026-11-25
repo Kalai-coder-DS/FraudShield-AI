@@ -10,7 +10,7 @@ from fraudshield.config import RISK_TIERS, SETTINGS
 from fraudshield.storage import db
 from fraudshield.ui import model_state as ms
 from fraudshield.ui.components import escape_markdown, mask_card, render_header
-from fraudshield.ui.prediction_view import show_result
+from fraudshield.ui.prediction_view import show_result, transaction_columns
 
 render_header(
     "Transaction Investigation",
@@ -95,13 +95,7 @@ event = st.dataframe(
     hide_index=True,
     on_select="rerun",
     selection_mode="single-row",
-    column_config={
-        "fraud_probability": st.column_config.ProgressColumn(
-            "Fraud probability", format="%.1f%%", min_value=0, max_value=100
-        ),
-        "predicted_fraud": st.column_config.CheckboxColumn("Flagged"),
-        "is_fraud": st.column_config.NumberColumn("Known label (1 = fraud)"),
-    },
+    column_config=transaction_columns(),
     key=f"table-{page}",
 )
 st.caption("Click a row to inspect it.")

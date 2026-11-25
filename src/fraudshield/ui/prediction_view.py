@@ -10,6 +10,7 @@ import streamlit as st
 
 from fraudshield.models import explain
 from fraudshield.models.charts import contribution_chart
+from fraudshield.reports.summary import format_probability
 from fraudshield.risk.tiers import TIER_INFO, assign_tier
 from fraudshield.ui import theme
 from fraudshield.ui.components import escape_markdown, mask_card, render_kpi
@@ -46,7 +47,7 @@ def show_result(
     with cols[0]:
         render_kpi(
             "Fraud probability",
-            f"{probability:.1%}",
+            format_probability(probability),
             "Calibrated: of transactions scored like this, about this share were fraud.",
         )
     with cols[1]:
@@ -100,3 +101,22 @@ def show_result(
             }
         )
         st.dataframe(details, hide_index=True)
+
+
+def transaction_columns() -> dict:
+    """Column labels and widths for scored-transaction tables (no cut-off values)."""
+    cc = st.column_config
+    return {
+        "transaction_id": cc.TextColumn("Transaction ID", width="medium"),
+        "timestamp": cc.DatetimeColumn("Time", format="YYYY-MM-DD HH:mm", width="medium"),
+        "amount": cc.NumberColumn("Amount", format="%.2f", width="small"),
+        "category": cc.TextColumn("Category", width="small"),
+        "merchant": cc.TextColumn("Merchant", width="medium"),
+        "card_id": cc.TextColumn("Card", width="small"),
+        "fraud_probability": cc.ProgressColumn(
+            "Fraud probability", format="%.1f%%", min_value=0, max_value=100, width="medium"
+        ),
+        "risk_tier": cc.TextColumn("Risk tier", width="small"),
+        "predicted_fraud": cc.CheckboxColumn("Flagged", width="small"),
+        "is_fraud": cc.NumberColumn("Known fraud (1 = yes)", width="small"),
+    }

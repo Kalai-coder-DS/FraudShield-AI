@@ -20,6 +20,7 @@ from fraudshield.ui.components import (
     render_kpi,
     render_page_link,
 )
+from fraudshield.ui.sample_loader import render_load_sample_button
 
 PLOT_CONFIG = {"displaylogo": False, "modeBarButtonsToRemove": ["lasso2d", "select2d"]}
 
@@ -37,6 +38,7 @@ if active is None:
         "Load and save a dataset in Dataset Management first. "
         "The analysis runs on the active dataset.",
     )
+    render_load_sample_button("eda")
     render_page_link("views/dataset.py", "Go to Dataset Management", ":material/table_view:")
     st.stop()
 
@@ -52,7 +54,7 @@ def compute(dataset_id: int) -> dict:
         "amount_summary": a.amount_summary(df),
         "amount_hist": a.amount_histogram(df),
         "outliers": a.outliers_iqr(df),
-        "daily": a.daily_activity(df),
+        "weekly": a.weekly_activity(df),
         "volume_hour": a.volume_by(df, "hour", order=list(range(24))),
         "volume_category": a.volume_by(df, "category"),
         "correlation": a.correlation_matrix(df),
@@ -132,10 +134,12 @@ with summary:
             "can look very accurate while missing all fraud, so FraudShield judges models "
             "by precision and recall instead of accuracy."
         )
-    show(charts.daily_activity_chart(r["daily"]))
+    show(charts.weekly_activity_chart(r["weekly"], "Transaction activity per week"))
     explain(
-        "the number of transactions per day (grey line)"
-        + (" and fraud transactions per day (red bars, right axis)." if r["labels"] else ".")
+        "the number of transactions per week (grey line)"
+        + (" and known fraud per week (red bars, right axis)." if r["labels"] else ".")
+        + " Weekly totals are used because daily fraud counts are small and jump around; "
+        "partly covered first and last weeks are left out."
     )
 
 # --- Amounts ------------------------------------------------------------------

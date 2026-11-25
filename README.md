@@ -22,8 +22,8 @@ explains each score so an analyst knows what to investigate first.
 | 3 | Exploratory data analysis | ✅ Done |
 | 4 | Machine-learning engine | ✅ Done |
 | 5 | Fraud prediction, risk intelligence, investigation | ✅ Done |
-| 6 | Executive dashboard, reports, integration | ⏳ Next |
-| 7 | Testing & performance optimisation | Planned |
+| 6 | Executive dashboard, reports, integration | ✅ Done |
+| 7 | Testing & performance optimisation | ⏳ Next |
 | 8 | Final documentation & release | Planned |
 
 ## Tech stack
@@ -35,6 +35,7 @@ explains each score so an analyst knows what to investigate first.
 | ML | scikit-learn | Logistic Regression, Decision Tree, Random Forest, Isolation Forest, pipelines, metrics |
 | App | Streamlit | One lightweight process; no separate frontend server |
 | Charts | Plotly (app), Matplotlib (PDF) | Interactive in the app, static in reports |
+| Reports | ReportLab | PDF report built from the same summary as the dashboard |
 | Storage | SQLite (built into Python) | Paginated tables without loading everything into memory |
 | Testing | pytest | Unit, integration and Streamlit smoke tests |
 

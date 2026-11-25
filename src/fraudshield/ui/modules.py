@@ -38,6 +38,7 @@ MODULES: tuple[Module, ...] = (
             "Count of High and Critical risk transactions",
             "Risk distribution and suspicious activity over time",
         ),
+        ready=True,
     ),
     Module(
         key="dataset",
@@ -138,6 +139,7 @@ MODULES: tuple[Module, ...] = (
             "Scored transactions as CSV",
             "PDF report with dataset summary, fraud statistics, model performance and findings",
         ),
+        ready=True,
     ),
 )
 

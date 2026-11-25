@@ -271,3 +271,90 @@ def correlation_heatmap(corr: pd.DataFrame) -> go.Figure:
     )
     fig.update_yaxes(autorange="reversed")
     return _style(fig, "Correlation between features (Spearman)", "", "", height=440)
+
+
+def weekly_activity_chart(weekly: pd.DataFrame, title: str = "Weekly activity") -> go.Figure:
+    """Transactions per week (grey line) and fraud or flagged per week (red bars).
+
+    Weekly totals are used because daily fraud counts are small and noisy.
+    Both axes start at zero and the right axis only shows whole numbers.
+    """
+    column = "fraud" if "fraud" in weekly else ("flagged" if "flagged" in weekly else None)
+    label = {"fraud": "Known fraud", "flagged": "Flagged by model"}.get(column, "")
+    fig = make_subplots(specs=[[{"secondary_y": column is not None}]])
+    fig.add_trace(
+        go.Scatter(
+            x=weekly["week"],
+            y=weekly["transactions"],
+            name="All transactions",
+            mode="lines+markers",
+            line=dict(color=LEGIT_COLOR, width=2),
+            marker=dict(size=5),
+            hovertemplate="Week of %{x|%d %b %Y}: %{y:,} transactions<extra></extra>",
+        ),
+        secondary_y=False,
+    )
+    if column:
+        fig.add_trace(
+            go.Bar(
+                x=weekly["week"],
+                y=weekly[column],
+                name=f"{label} transactions",
+                marker_color=t.FRAUD,
+                opacity=0.85,
+                hovertemplate="Week of %{x|%d %b %Y}: %{y:,} " + label.lower() + "<extra></extra>",
+            ),
+            secondary_y=True,
+        )
+    fig = _style(fig, title, "Week", "Transactions per week")
+    fig.update_yaxes(rangemode="tozero", secondary_y=False)
+    if column:
+        fig.update_yaxes(
+            title_text=f"{label} per week",
+            secondary_y=True,
+            rangemode="tozero",
+            tickformat=",d",
+            showgrid=False,
+        )
+    return fig
+
+
+def category_lift_chart(top_categories: list[dict]) -> go.Figure:
+    """How over-represented each category is among High and Critical transactions."""
+    rows = top_categories[::-1]
+    fig = go.Figure(
+        go.Bar(
+            x=[r["lift"] for r in rows],
+            y=[r["category"] for r in rows],
+            orientation="h",
+            marker_color=[t.FRAUD if r["lift"] > 1 else t.PRIMARY for r in rows],
+            customdata=[[r["share_of_high_risk"] * 100, r["share_of_all"] * 100] for r in rows],
+            hovertemplate="%{y}: %{x:.1f}x<br>%{customdata[0]:.1f}% of high-risk vs "
+            "%{customdata[1]:.1f}% of all<extra></extra>",
+        )
+    )
+    fig.add_vline(x=1, line_dash="dash", line_color=t.TEXT_MUTED)
+    return _style(
+        fig,
+        "Categories over-represented in high risk",
+        "Lift (1 = same as all transactions)",
+        "",
+        height=320,
+    )
+
+
+def tier_bar_chart(tiers: list[dict]) -> go.Figure:
+    """Transactions per risk tier on a log scale (almost everything is Low)."""
+    fig = go.Figure(
+        go.Bar(
+            x=[r["tier"] for r in tiers],
+            y=[r["transactions"] for r in tiers],
+            marker_color=[t.RISK_COLORS[r["tier"]] for r in tiers],
+            text=[f"{r['transactions']:,}" for r in tiers],
+            textposition="outside",
+            cliponaxis=False,
+            hovertemplate="%{x}: %{y:,} transactions<extra></extra>",
+        )
+    )
+    fig.update_yaxes(type="log")
+    return _style(fig, "Transactions per risk tier", "", "Transactions (log scale)", height=320)
