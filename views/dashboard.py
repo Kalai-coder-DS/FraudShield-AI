@@ -31,7 +31,7 @@ st.caption(
 
 st.markdown(
     f"<div class='fs-card' style='border-left:3px solid #E5484D;border-radius:0'>"
-    f"<h3>{escape(risk_level_text(summary))}</h3>"
+    f"<h3>{escape(risk_level_text(summary), quote=False)}</h3>"
     "<p>Scores are model estimates that help decide what to review first, "
     "not confirmed fraud decisions.</p></div>",
     unsafe_allow_html=True,

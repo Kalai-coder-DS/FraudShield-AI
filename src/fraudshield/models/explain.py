@@ -127,7 +127,7 @@ def describe_value(group: str, row: pd.Series, card_amount_z: float | None = Non
     if group == "Time of day" and pd.notna(ts):
         return f"{pd.Timestamp(ts):%H:%M}"
     if group == "Day of week" and pd.notna(ts):
-        return WEEKDAY_NAMES[pd.Timestamp(ts).dayofweek]
+        return WEEKDAY_NAMES[pd.Timestamp(ts).day_of_week]
     if group == "Spending category":
         return str(row.get("category", ""))
     if group == "Customer age" and pd.notna(row.get("dob")) and pd.notna(ts):
