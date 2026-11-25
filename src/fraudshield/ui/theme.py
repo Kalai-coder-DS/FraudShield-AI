@@ -53,7 +53,7 @@ section[data-testid="stSidebar"] {{
     border-right: 1px solid var(--fs-border);
 }}
 
-.block-container {{ padding-top: 2rem; max-width: 1200px; }}
+.block-container {{ padding-top: 4.5rem; max-width: 1200px; }}  /* clears the Streamlit top bar */
 
 /* Page header */
 .fs-header h1 {{ font-size: 1.9rem; font-weight: 700; margin: 0 0 .25rem 0;
