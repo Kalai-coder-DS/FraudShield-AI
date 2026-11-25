@@ -78,8 +78,12 @@ def test_manual_transaction_without_optional_details(small_model):
 # --- Explanations ----------------------------------------------------------------
 
 
-def test_model_parts_reproduce_saved_model(small_model):
-    model, test, _ = small_model
+@pytest.mark.parametrize("name", ["Logistic Regression", "Decision Tree", "Random Forest"])
+def test_model_parts_reproduce_every_model(small_model, name):
+    # Regression test: Logistic Regression is calibrated on decision_function, trees on
+    # predict_proba. Explanations must use the same score as the saved model.
+    _, test, result = small_model
+    model = result.results[name].model
     parts = explain.model_parts(model)
     np.testing.assert_allclose(
         parts.predict(parts.transform(test)), model.predict_proba(test)[:, 1]

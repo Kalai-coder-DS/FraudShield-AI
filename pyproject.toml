@@ -23,6 +23,14 @@ filterwarnings = [
     "error::FutureWarning:fraudshield.*",
 ]
 
+[tool.coverage.run]
+source = ["src/fraudshield"]
+concurrency = ["thread"]  # Streamlit page tests run in a thread
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"

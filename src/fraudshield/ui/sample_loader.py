@@ -4,23 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from fraudshield.config import SAMPLE_DATASET_FILE
-from fraudshield.data.loader import read_columns
-from fraudshield.data.schema import suggest_mapping
-from fraudshield.data.validation import process_dataset
-from fraudshield.storage import db
-
-
-def sample_available() -> bool:
-    return SAMPLE_DATASET_FILE.is_file()
-
-
-def load_sample() -> int:
-    """Validate the bundled sample with automatic column matching and make it active."""
-    result = process_dataset(
-        SAMPLE_DATASET_FILE, suggest_mapping(read_columns(SAMPLE_DATASET_FILE))
-    )
-    return db.save_dataset("Sparkov sample", "Bundled sample (Sparkov)", result.data, result.report)
+from fraudshield.data.sample import load_sample, sample_available
 
 
 def render_load_sample_button(key: str) -> None:

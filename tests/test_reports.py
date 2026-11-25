@@ -170,3 +170,14 @@ def test_pdf_with_no_high_risk_transactions(scored):
     data, scores, meta = scored
     calm = scores.assign(risk_tier="Low", predicted_fraud=np.int8(0))
     assert build_pdf(build_summary(data, calm, meta, "Calm")).startswith(b"%PDF")
+
+
+def test_missing_model_inputs_are_reported(scored):
+    from fraudshield.reports.summary import missing_model_inputs
+
+    data, scores, meta = scored
+    assert missing_model_inputs(data.columns) == []
+    minimal = data[["transaction_id", "timestamp", "amount", "card_id", "category", "is_fraud"]]
+    assert len(missing_model_inputs(minimal.columns)) == 3
+    s = build_summary(minimal, scores, meta, "minimal")
+    assert any("less reliable" in w for w in s.warnings)

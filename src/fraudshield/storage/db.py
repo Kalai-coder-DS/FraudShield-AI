@@ -23,7 +23,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from fraudshield.config import DATABASE_PATH
+from fraudshield import config
 from fraudshield.data.schema import FIELDS, FIELDS_BY_NAME
 from fraudshield.data.validation import DataReport
 
@@ -83,8 +83,13 @@ class DatasetInfo:
 
 
 @contextmanager
-def connect(db_path: Path = DATABASE_PATH) -> Iterator[sqlite3.Connection]:
-    """Open the database, create tables if needed, commit on success."""
+def connect(db_path: Path | None = None) -> Iterator[sqlite3.Connection]:
+    """Open the database, create tables if needed, commit on success.
+
+    The default location is read from config at call time, so tests can point
+    the whole app at a temporary database.
+    """
+    db_path = Path(db_path or config.DATABASE_PATH)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(db_path)
     try:
@@ -143,7 +148,7 @@ def save_dataset(
     data: pd.DataFrame,
     report: DataReport,
     make_active: bool = True,
-    db_path: Path = DATABASE_PATH,
+    db_path: Path | None = None,
     chunksize: int = 50_000,
 ) -> int:
     """Store a cleaned dataset and its report. Returns the new dataset id."""
@@ -184,14 +189,14 @@ def _set_active(conn: sqlite3.Connection, dataset_id: int) -> None:
     conn.execute("UPDATE datasets SET is_active = (id = ?)", (dataset_id,))
 
 
-def set_active(dataset_id: int, db_path: Path = DATABASE_PATH) -> None:
+def set_active(dataset_id: int, db_path: Path | None = None) -> None:
     with connect(db_path) as conn:
         if conn.execute("SELECT 1 FROM datasets WHERE id = ?", (dataset_id,)).fetchone() is None:
             raise KeyError(f"Dataset {dataset_id} does not exist.")
         _set_active(conn, dataset_id)
 
 
-def list_datasets(db_path: Path = DATABASE_PATH) -> list[DatasetInfo]:
+def list_datasets(db_path: Path | None = None) -> list[DatasetInfo]:
     with connect(db_path) as conn:
         rows = conn.execute(
             "SELECT id, name, source, created_at, rows_clean, has_label, quality_score, "
@@ -200,11 +205,11 @@ def list_datasets(db_path: Path = DATABASE_PATH) -> list[DatasetInfo]:
     return [DatasetInfo(r[0], r[1], r[2], r[3], r[4], bool(r[5]), r[6], bool(r[7])) for r in rows]
 
 
-def get_active_dataset(db_path: Path = DATABASE_PATH) -> DatasetInfo | None:
+def get_active_dataset(db_path: Path | None = None) -> DatasetInfo | None:
     return next((d for d in list_datasets(db_path) if d.is_active), None)
 
 
-def load_report(dataset_id: int, db_path: Path = DATABASE_PATH) -> DataReport:
+def load_report(dataset_id: int, db_path: Path | None = None) -> DataReport:
     with connect(db_path) as conn:
         row = conn.execute(
             "SELECT report_json FROM datasets WHERE id = ?", (dataset_id,)
@@ -223,7 +228,7 @@ def _dataset_columns(dataset_id: int, db_path: Path) -> list[str]:
 def load_transactions(
     dataset_id: int,
     columns: list[str] | None = None,
-    db_path: Path = DATABASE_PATH,
+    db_path: Path | None = None,
 ) -> pd.DataFrame:
     """Load a whole dataset (optionally only some columns) with correct dtypes."""
     available = _dataset_columns(dataset_id, db_path)
@@ -242,7 +247,7 @@ def fetch_page(
     dataset_id: int,
     page: int,
     page_size: int,
-    db_path: Path = DATABASE_PATH,
+    db_path: Path | None = None,
 ) -> pd.DataFrame:
     """Return one page of transactions (page numbers start at 1)."""
     if page < 1 or page_size < 1:
@@ -258,7 +263,7 @@ def fetch_page(
     return _from_sql_frame(df)
 
 
-def delete_dataset(dataset_id: int, db_path: Path = DATABASE_PATH) -> None:
+def delete_dataset(dataset_id: int, db_path: Path | None = None) -> None:
     """Delete a dataset and all its transactions."""
     with connect(db_path) as conn:
         cur = conn.execute("DELETE FROM datasets WHERE id = ?", (dataset_id,))
@@ -274,7 +279,7 @@ def delete_dataset(dataset_id: int, db_path: Path = DATABASE_PATH) -> None:
 # ---------------------------------------------------------------------------
 
 
-def scores_model(dataset_id: int, db_path: Path = DATABASE_PATH) -> str | None:
+def scores_model(dataset_id: int, db_path: Path | None = None) -> str | None:
     """Fingerprint of the model that produced the stored scores (None if not scored)."""
     with connect(db_path) as conn:
         row = conn.execute(
@@ -284,7 +289,7 @@ def scores_model(dataset_id: int, db_path: Path = DATABASE_PATH) -> str | None:
 
 
 def save_scores(
-    dataset_id: int, scores: pd.DataFrame, model_sha256: str, db_path: Path = DATABASE_PATH
+    dataset_id: int, scores: pd.DataFrame, model_sha256: str, db_path: Path | None = None
 ) -> None:
     """Replace the stored scores of a dataset. ``scores`` is indexed by row number."""
     rows = (
@@ -302,7 +307,7 @@ def save_scores(
         conn.executemany("INSERT INTO scores VALUES (?, ?, ?, ?, ?, ?)", rows)
 
 
-def load_scores(dataset_id: int, db_path: Path = DATABASE_PATH) -> pd.DataFrame:
+def load_scores(dataset_id: int, db_path: Path | None = None) -> pd.DataFrame:
     with connect(db_path) as conn:
         df = pd.read_sql_query(
             "SELECT row_number, fraud_probability, predicted_fraud, risk_tier FROM scores "
@@ -367,7 +372,7 @@ _JOIN = (
 )
 
 
-def count_transactions(dataset_id: int, f: TransactionFilter, db_path: Path = DATABASE_PATH) -> int:
+def count_transactions(dataset_id: int, f: TransactionFilter, db_path: Path | None = None) -> int:
     where, params = _where(dataset_id, f)
     with connect(db_path) as conn:
         return int(conn.execute(f"SELECT COUNT(*) {_JOIN} WHERE {where}", params).fetchone()[0])
@@ -378,7 +383,7 @@ def search_transactions(
     f: TransactionFilter,
     page: int = 1,
     page_size: int = 50,
-    db_path: Path = DATABASE_PATH,
+    db_path: Path | None = None,
 ) -> pd.DataFrame:
     """One page of scored transactions matching ``f``, riskiest first."""
     if page < 1 or page_size < 1:
@@ -396,7 +401,7 @@ def search_transactions(
 
 
 def get_transaction(
-    dataset_id: int, transaction_id: str, db_path: Path = DATABASE_PATH
+    dataset_id: int, transaction_id: str, db_path: Path | None = None
 ) -> pd.DataFrame:
     """A single transaction (exact ID match) with its row number as index."""
     cols = ", ".join(f'"{c}"' for c in _dataset_columns(dataset_id, db_path))

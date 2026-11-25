@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from fraudshield.models import scoring
-from fraudshield.reports.summary import format_probability
+from fraudshield.reports.summary import format_probability, missing_model_inputs
 from fraudshield.storage import db
 from fraudshield.ui import model_state as ms
 from fraudshield.ui.components import escape_markdown, render_empty_state, render_header
@@ -45,6 +45,13 @@ with pick_tab:
         scores = ms.ensure_scores(active, model, meta)
         data = ms.load_dataset(active.id)
         st.caption(f"Dataset: {escape_markdown(active.name)} · {len(data):,} transactions")
+        missing = missing_model_inputs(data.columns)
+        if missing:
+            st.warning(
+                "This dataset has no " + ", ".join(missing) + ", so the model uses typical "
+                "values for them and its scores are less reliable.",
+                icon=":material/warning:",
+            )
 
         rng = np.random.default_rng()
         buttons = st.columns(4)

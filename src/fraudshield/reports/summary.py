@@ -22,6 +22,24 @@ from fraudshield.risk.tiers import TIER_INFO
 
 MIN_GROUP_SHARE = 0.005  # groups smaller than 0.5% of transactions are ignored in "top" lists
 
+# Optional columns the model uses, and what is lost without them.
+MODEL_INPUTS: dict[str, tuple[str, ...]] = {
+    "customer age (dob)": ("dob",),
+    "distance to merchant (lat, long, merch_lat, merch_long)": (
+        "lat",
+        "long",
+        "merch_lat",
+        "merch_long",
+    ),
+    "city population (city_pop)": ("city_pop",),
+}
+
+
+def missing_model_inputs(columns) -> list[str]:
+    """Model inputs the dataset does not have (the model then uses typical values)."""
+    cols = set(columns)
+    return [name for name, needed in MODEL_INPUTS.items() if not set(needed) <= cols]
+
 
 @dataclass
 class Summary:
@@ -163,6 +181,13 @@ def build_summary(
             "Part of this dataset falls inside the period the model learned from "
             f"(up to {train_end:%d %b %Y}), so results on it are optimistic. The honest "
             "test results are in the Model performance section."
+        )
+
+    missing = missing_model_inputs(data.columns)
+    if missing:
+        warnings.append(
+            "This dataset has no " + ", ".join(missing) + ". The model fills these in with "
+            "typical values, so its scores are less reliable than on the test data."
         )
 
     top_categories = _lift_by_category(df, risky)

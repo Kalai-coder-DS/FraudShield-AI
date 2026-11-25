@@ -49,7 +49,13 @@ class ModelParts:
         return np.asarray(self.features.transform(df), dtype="float64")
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        raw = self.classifier.predict_proba(X)[:, 1]
+        # Use the same raw score the calibrator was fitted on: scikit-learn calibrates
+        # decision_function when the model has one (e.g. Logistic Regression) and
+        # predict_proba otherwise (trees, forests).
+        if hasattr(self.classifier, "decision_function"):
+            raw = self.classifier.decision_function(X)
+        else:
+            raw = self.classifier.predict_proba(X)[:, 1]
         return np.clip(self.calibrator.predict(raw), 0.0, 1.0)
 
 

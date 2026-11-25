@@ -36,7 +36,7 @@ def load(mtime: float) -> dict:  # mtime makes the cache refresh after retrainin
     return registry.load_metadata()
 
 
-meta = load((registry.MODELS_DIR / registry.METADATA_FILE).stat().st_mtime)
+meta = load(registry.metadata_path().stat().st_mtime)
 models = meta["models"]
 selected = meta["selected_model"]
 best = models[selected]["test"]

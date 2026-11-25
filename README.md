@@ -23,8 +23,8 @@ explains each score so an analyst knows what to investigate first.
 | 4 | Machine-learning engine | ✅ Done |
 | 5 | Fraud prediction, risk intelligence, investigation | ✅ Done |
 | 6 | Executive dashboard, reports, integration | ✅ Done |
-| 7 | Testing & performance optimisation | ⏳ Next |
-| 8 | Final documentation & release | Planned |
+| 7 | Testing & performance optimisation | ✅ Done |
+| 8 | Final documentation & release | ⏳ Next |
 
 ## Tech stack
 
@@ -86,9 +86,13 @@ The app opens at http://localhost:8501.
 ## Running tests
 
 ```bash
-pytest          # all tests
-ruff check .    # code-quality checks
+pytest                                  # all tests
+pytest --cov --cov-report=term-missing  # with test coverage
+ruff check .                            # code-quality checks
+python scripts/benchmark.py             # speed and memory on your computer
 ```
+
+See [docs/testing.md](docs/testing.md) for the test strategy, bugs found and the manual checklist.
 
 ## Project structure
 
